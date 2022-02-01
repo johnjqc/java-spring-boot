@@ -1,0 +1,270 @@
+openapi: "3.0.3"
+info:
+  description: >-
+    This API is built to use how a template.
+  version: "1.0.0"
+  x-template-version: 3.0.0
+  title: Template Service Api
+  contact:
+    name: Enterprise API & Events Design Committee
+    url: 'https://bitbucket.agile.bns/projects/CODFARCH/repos/microservice-java-hexagonal-template/browse/mod-adapter-rest/src/main/resources/api.yaml'
+    email: enterpriseAPIIntake@scotiabank.com
+  license:
+    name: Template API
+servers:
+  - url: 'http://localhost'
+security:
+  - oAuth2ClientCredentials: [ ]
+tags:
+  - name: Category Name
+    description: Poner descripcion
+
+
+paths:
+
+  /user/{user-name}:
+    get:
+      tags:
+        - 'Category Name'
+      summary: Short description
+      description: Long description.
+      operationId: user-get-by-username
+      security:
+        - oAuth2ClientCredentials:
+            # # Provide the application epm code here for api method scope before code generation
+            - notification.send-sms.<epm_code>.send-sms.write
+
+      parameters:
+        - $ref: "#/components/parameters/UserName"
+
+      responses:
+        '200':
+          description: |
+            Any description.
+          content:
+            'application/json':
+              schema:
+                format: ResponseUser
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/ResponseUser'
+              examples:
+                ResponseBodyExample:
+                  $ref: "#/components/examples/ResponseBodyExample"
+        '400':
+          description: 'Bad request'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/BadResponseExample'
+        '401':
+          description: 'Unauthorized. Request was understood but provided credentials info is invalid'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/InvalidCredentialsResponseExample'
+
+        '500':
+          description: 'Internal server error'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/ErrorResponseExample'
+
+
+  /health:
+    get:
+      tags:
+        - 'Category Name'
+      summary: Short description
+      description: Long description.
+      operationId: health
+      security:
+        - oAuth2ClientCredentials:
+            # # Provide the application epm code here for api method scope before code generation
+            - notification.send-sms.<epm_code>.send-sms.write
+
+      responses:
+        '200':
+          description: |
+            Any description.
+          content:
+            'application/json':
+              schema:
+                format: ResponseHealth
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/ResponseHealth'
+              examples:
+                ResponseBodyExample:
+                  $ref: "#/components/examples/ResponseBodyExample"
+        '400':
+          description: 'Bad request'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/BadResponseExample'
+        '401':
+          description: 'Unauthorized. Request was understood but provided credentials info is invalid'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/InvalidCredentialsResponseExample'
+
+        '500':
+          description: 'Internal server error'
+          content:
+            'application/json':
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponseDF"
+              examples:
+                ErrorResponse:
+                  $ref: '#/components/examples/ErrorResponseExample'
+
+
+components:
+
+  securitySchemes:
+    oAuth2ClientCredentials:
+      type: oauth2
+      description: '[Provide_Service Authentication flow/Grant Type details]'
+      flows:
+        clientCredentials:
+          tokenUrl: '[Provide_Enterprise_Approved_Oauth2_Authorization_Server_URL]'
+          scopes:
+            notification.send-sms.<epm_code>.send-sms.write: |
+              Define your scopes here for all endpoint methods as per the above scope naming convention.
+              Please refer here for scope naming convention - https://confluence.agile.bns/display/APID/JWT+Scope+Design
+              Provide application epm_code before generating the code for api method scope.
+          refreshUrl: '[Provide_Enterprise_Approved_Oauth2_Authorization_Server_Refresh_URL]'
+
+  schemas:
+
+    ApiResponseDF:
+      type: object
+      properties:
+        data:
+          type: object
+        notification:
+          $ref: '#/components/schemas/Notification'
+    Notification:
+      type: object
+      properties:
+        description:
+          type: string
+          description: 'Message which explains the notification.'
+        response_time:
+          type: string
+          format: date-time
+          example: 2017-10-12T20:38:45.408Z
+          description: 'Timestamp of the notification.'
+        code:
+          type: string
+          description: 'Internal application error code.'
+        source:
+          type: string
+        reference:
+          type: string
+
+    ResponseUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 'any description'
+          example: value
+        status:
+          type: string
+          description: 'any description'
+          example: value
+
+    ResponseHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          description: 'any description'
+          example: value
+
+  examples:
+    RequetsBodyExample:
+      value:
+        value: 'any value on request'
+
+    ResponseBodyExample:
+      value:
+        data:
+          value: 'any value'
+        notification: null
+
+    ErrorResponseExample:
+      value:
+        data: null
+        notification:
+          -  description: 'Explains the notification'
+             response_time: '2017-10-12T20:38:45.408Z'
+             code: 'E422TDSKTMBILLPPAYRCPTG001'
+             source: ''
+             reference: ''
+
+    BadResponseExample:
+      value:
+        data: null
+        notification:
+          -  description: 'Explains the notification'
+             response_time: '2017-10-12T20:38:45.408Z'
+             code: 'E422TDSKTMBILLPPAYRCPTG001'
+             source: ''
+             reference: ''
+
+    InvalidCredentialsResponseExample:
+      value:
+        data: null
+        notification:
+          -  description: 'Explains the notification'
+             response_time: '2017-10-12T20:38:45.408Z'
+             code: 'E422TDSKTMBILLPPAYRCPTG001'
+             source: ''
+             reference: ''
+
+  parameters:
+
+    CustomParam:
+      name: custom-name
+      in: header
+      schema:
+        type: string
+      description: any desciption
+      example: value
+    UserName:
+      name: user-name
+      in: "path"
+      description: "ID of user to return"
+      required: true
+      schema:
+        type: string

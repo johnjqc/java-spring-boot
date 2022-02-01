@@ -1,0 +1,47 @@
+.gradle
+/build/
+/libs/
+/out/
+bin/
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+### NetBeans ###
+nbproject/
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+.nb-gradle-properties
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+/out/
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+### Fortify ###
+*.fpr
+### Mac OSX ###
+.DS_Store
+### Files ###
+derby.log
+logs/
+*.log
+*.mv.db
+*.trace.db
+src/integTest/node_modules/
+java_pid*.hprof
+/.gradle/

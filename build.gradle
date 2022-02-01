@@ -1,0 +1,229 @@
+buildscript {
+    repositories {
+        maven {
+            url "${artifactory_contextUrl}/plugins-release"
+            credentials {
+                username = "${artifactory_user}"
+                password = "${artifactory_password}"
+            }
+        }
+    }
+    dependencies {
+        classpath "zeni:plato-jvm-gradle-plugin:3.0.2"
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.12.0"
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version '2.3.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
+    id 'idea'
+
+    //open-api
+    id 'java-library'
+    id "org.openapi.generator" version "4.3.1"
+}
+
+apply plugin: 'zeni.plato-jvm-base'
+
+group 'com.colpatria'
+description 'MyService Api '
+version '1.0'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    maven {
+        url "${artifactory_contextUrl}/virtual-release-bns"
+        credentials {
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+    }
+}
+
+ext {
+    set('springCloudVersion', "Hoxton.SR6")
+}
+
+configurations.all {
+    resolutionStrategy {
+        dependencySubstitution {
+            substitute module('org.apache.tomcat.embed:tomcat-embed-core') with module('org.apache.tomcat.embed:tomcat-embed-core:9.0.50')
+            substitute module('org.apache.tomcat.embed:tomcat-embed-websocket') with module('org.apache.tomcat.embed:tomcat-embed-websocket:9.0.50')
+            substitute module('commons-httpclient:commons-httpclient') with module('org.apache.httpcomponents:httpclient:4.5.13')
+            substitute module('org.apache.httpcomponents:httpclient') with module('org.apache.httpcomponents:httpclient-cache:4.5.13')
+        }
+    }
+}
+
+dependencies {
+    compile 'codfshared:api-response-lib:3.0.0'
+
+    implementation 'javax.validation:validation-api:2.0.0.Final'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    implementation 'org.apache.commons:commons-lang3:3.7'
+
+    implementation 'io.github.openfeign:feign-okhttp'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:0.17.0'
+    implementation 'io.github.resilience4j:resilience4j-timelimiter:0.17.0'
+    implementation 'io.vavr:vavr:0.9.0'
+    implementation 'org.apache.commons:commons-collections4:4.4'
+
+    implementation 'org.owasp.esapi:esapi:2.2.2.0'
+    implementation 'org.jsoup:jsoup:1.13.1'
+
+    runtimeOnly 'com.h2database:h2'
+
+    implementation 'com.google.guava:guava'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+    //swagger
+    implementation 'io.springfox:springfox-swagger2:2.7.0'
+    //openapi
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.1'
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+bootJar {
+    enabled = true
+}
+
+//get commit info
+def getCommitInfo = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+ext.commitInfo = getCommitInfo()
+
+processResources {
+    filesMatching('bootstrap.yaml') {
+        expand(project.properties)
+    }
+}
+
+
+test {
+    useJUnitPlatform()
+}
+platoJvm {
+    jacoco {
+        // note this is the default value, but this config is here to provide a clue as to options available
+        // refer to http://bitbucket.agile.bns/projects/ZENI/repos/plato-jvm-gradle-plugin/browse for more details
+        minimumCoverage = 0.0
+        coverageExclusions = [
+                // Exclude code that should be in a shared library, and has been copied from one for now
+                'com.bns.shared.**',
+                // Exclude generated code, domain objects and configuration from coverage reports
+                '**.*Application*',
+                '**.annotation.*',
+                '**.config.*',
+                "**.configuration.*",
+                '**.constant.*',
+                '**.*Constants*',
+                "**.contract.*",
+                '**.dto.*',
+                '**.exception.*',
+                '**.model.**',
+                '**.properties.*',
+                '**.mapper.*',
+                '**.controller.request.*',
+                '**.event.*',
+                '**.logging.helper.*'
+        ]
+    }
+}
+sonarqube {
+    // Ensure all generated code is NOT analyzed by Sonarqube
+    properties {
+        property "sonar.exclusions", "**/generated/**/*.*"+
+                "**/*Application*," +
+                "**/annotation/*," +
+                "**/config/**," +
+                "**/configuration/**," +
+                "**/constant/*," +
+                "**/*Constants*," +
+                "**/dto/*," +
+                "**/vo/*," +
+                "**/contract/*," +
+                "**/model/*," +
+                "**/exception/*," +
+                "**/exceptions/*," +
+                "**/model/**," +
+                "**/properties/*," +
+                "**/mapper/*," +
+                "**/controller/request/*" +
+                "**/logging/helper/*"
+
+
+    }
+}
+
+openApiValidate {
+    inputSpec = "$rootDir/src/main/resources/api.yaml".toString()
+    recommend = true
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/api.yaml".toString()
+    outputDir = "$buildDir/generated".toString()
+    apiPackage = "com.colpatria.service"
+    modelPackage = "com.colpatria.bootcamp.controller.dto"
+
+    templateDir = "$rootDir/src/main/resources/mustache".toString()
+    importMappings= ["ApiResponseDF" : "com.colpatria.digitalfactory.api.dto.response.ApiResponseDF"]
+    additionalProperties= [
+            responseEntity: "true"
+    ]
+    configOptions = [
+            dateLibrary: "java8",
+            interfaceOnly: "true",
+            implicitHeaders: "true",
+            serializableModel: "true",
+            skipDefaultInterface: "true",
+            performBeanValidation: "true",
+    ]
+}
+
+compileJava.dependsOn 'openApiGenerate', 'processResources'
+
+sourceSets.main.java.srcDirs 'build/generated/src/main/java'
+sourceSets.main.java.srcDirs 'src/main/java'

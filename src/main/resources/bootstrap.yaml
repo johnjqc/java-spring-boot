@@ -1,0 +1,7 @@
+info:
+  app:
+    version: ${version}
+    commit: ${commitInfo}
+spring:
+  application:
+    name: my-service
